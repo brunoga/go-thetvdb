@@ -55,6 +55,11 @@ func (t *TheTVDB) GetSeriesById(seriesId int) (*Series, error) {
 		}
 	}
 
+	err = ValidateAPIKey(t.apiKey)
+        if err != nil {
+                return nil, fmt.Errorf("invalid API key : %v", err)
+        }
+
 	type Data struct {
 		Series []Series
 	}

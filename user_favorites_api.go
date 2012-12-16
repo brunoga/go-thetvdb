@@ -30,8 +30,9 @@ import (
 // field set and all other fields will be at their default values, so they are
 // not meaningful.
 func (t *TheTVDB) GetUserFavorites() ([]Series, error) {
-	if len(t.accountId) == 0 {
-		return nil, fmt.Errorf("account id must be set")
+	err := ValidateAccountId(t.accountId)
+	if err != nil {
+		return nil, fmt.Errorf("invalid account id : %v", err)
 	}
 
 	parameters := parameterMap{
@@ -48,9 +49,10 @@ func (t *TheTVDB) GetUserFavorites() ([]Series, error) {
 // AddUserFavorites adds the series identified by the given series id to the
 // list of series associated with the account id.
 func (t *TheTVDB) AddUserFavorite(seriesId int) error {
-	if len(t.accountId) == 0 {
-		return fmt.Errorf("account id must be set")
-	}
+	err := ValidateAccountId(t.accountId)
+	if err != nil {
+                return fmt.Errorf("invalid account id : %v", err)
+        }
 
 	if !isSeriesIdValid(seriesId) {
 		return fmt.Errorf("invalid series id given : %v", seriesId)
@@ -76,9 +78,10 @@ func (t *TheTVDB) AddUserFavorite(seriesId int) error {
 // RemoveUserFavorite removes the series identified by the given series id from
 // the list of series associated with the account id.
 func (t *TheTVDB) RemoveUserFavorite(seriesId int) error {
-	if len(t.accountId) == 0 {
-		return fmt.Errorf("account id must be set")
-	}
+	err := ValidateAccountId(t.accountId)
+        if err != nil {
+                return fmt.Errorf("invalid account id : %v", err)
+        }
 
 	if !isSeriesIdValid(seriesId) {
 		return fmt.Errorf("invalid series id given : %v", seriesId)
@@ -96,6 +99,11 @@ func (t *TheTVDB) RemoveUserFavorite(seriesId int) error {
 
 	if findSeriesId(seriesIds, seriesId) {
 		return fmt.Errorf("failed removing series from favorites")
+	}
+
+	err = t.db.Remove(seriesId)
+	if err != nil {
+		fmt.Println("Warning. Could not remove series from local database.")
 	}
 
 	return nil
