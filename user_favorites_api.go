@@ -29,7 +29,7 @@ import (
 // ascending order of their ids. Each Series object will only have their id
 // field set and all other fields will be at their default values, so they are
 // not meaningful.
-func (t *TheTVDB) GetUserFavorites() ([]Series, error) {
+func (t *TheTVDB) GetUserFavorites() ([]int, error) {
 	err := ValidateAccountId(t.accountId)
 	if err != nil {
 		return nil, fmt.Errorf("invalid account id : %v", err)
@@ -43,7 +43,7 @@ func (t *TheTVDB) GetUserFavorites() ([]Series, error) {
 		return nil, err
 	}
 
-	return seriesIdsSliceToSeriesSlice(seriesIds), nil
+	return seriesIds, nil
 }
 
 // AddUserFavorites adds the series identified by the given series id to the
@@ -138,17 +138,6 @@ func findSeriesId(seriesIds []int, seriesId int) bool {
 	}
 
 	return true
-}
-
-// seriesIdsSliceToSeriesSlice converts a slice of series ids to a slice of
-// Series. Only the Id field will be set in the resulting Series object.
-func seriesIdsSliceToSeriesSlice(seriesIds []int) []Series {
-	series := []Series{}
-	for _, id := range seriesIds {
-		series = append(series, Series{Id: id})
-	}
-
-	return series
 }
 
 // isSeriesIdValid returns if a given series id is valid. it only does a basic
