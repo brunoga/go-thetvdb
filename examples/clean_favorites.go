@@ -12,10 +12,6 @@
 // License for the specific language governing permissions and limitations under
 // the License.
 
-// Package thetvdb implements an interface to the TheTVDB API that allows
-// querying their dabatase for information about TV series and episodes in
-// general, including support for user favorites.
-
 package main
 
 import (
