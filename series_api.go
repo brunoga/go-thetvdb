@@ -43,6 +43,7 @@ type Series struct {
 	RatingCount      int
 	Runtime          int
 	Status           string
+	FetchDate	 string
 }
 
 func (t *TheTVDB) GetSeriesById(seriesId int) (*Series, error) {

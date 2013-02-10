@@ -35,12 +35,14 @@ func main() {
 		fmt.Println("Error :", err)
 		return
 	}
-
+	
+	fmt.Printf("Fetching user favorites ... ");
 	userFavorites, err := tvdb.GetUserFavorites()
 	if err != nil {
 		fmt.Println("Error retrieving favorites :", err)
 		return
 	} else {
+		fmt.Println("Ok")
 		fmt.Println("Number of favorites :", len(userFavorites))
 	}
 

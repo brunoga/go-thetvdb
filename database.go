@@ -16,6 +16,7 @@ package thetvdb
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/feyeleanor/gosqlite3"
 )
@@ -33,7 +34,7 @@ func NewLocalSeriesDatabase(path string) (*LocalSeriesDatabase, error) {
 	}
 
 	_, err = db.Execute("CREATE TABLE IF NOT EXISTS Series " +
-		"(Id INTEGER PRIMARY KEY, Name TEXT, Status TEXT)")
+		"(Id INTEGER PRIMARY KEY, Name TEXT, Status TEXT, FetchDate DATETIME DEFAULT CURRENT_TIMESTAMP)")
 	if err != nil {
 		return nil, fmt.Errorf("error creating Series table : %v", err)
 	}
@@ -50,10 +51,25 @@ func (db *LocalSeriesDatabase) Lookup(seriesId int) (*Series, error) {
 			series.Id = int(st.Column(0).(int64))
 			series.Name = st.Column(1).(string)
 			series.Status = st.Column(2).(string)
+			series.FetchDate = st.Column(3).(string)
 			gotSeries = true
 		})
 	if err != nil {
 		return nil, err
+	}
+
+	fetchDate, err := time.Parse("2006-01-02 15:04:05", series.FetchDate)
+	if err != nil {
+		// If we got an error, just force refetching the series entry.
+		db.Remove(series.Id)
+		gotSeries = false
+	} else {
+		elapsedTimeDays := time.Now().Sub(fetchDate).Days()
+		if elapsedTimeMinutes > 1 {
+			// Cache expired for this entry. Fetch again.
+			db.Remove(series.Id)
+			gotSeries = false
+		}
 	}
 
 	if !gotSeries {
