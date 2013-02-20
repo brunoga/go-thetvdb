@@ -64,8 +64,8 @@ func (db *LocalSeriesDatabase) Lookup(seriesId int) (*Series, error) {
 		db.Remove(series.Id)
 		gotSeries = false
 	} else {
-		elapsedTimeDays := time.Now().Sub(fetchDate).Days()
-		if elapsedTimeMinutes > 1 {
+		elapsedTimeHours := time.Now().Sub(fetchDate).Hours()
+		if elapsedTimeHours > 48 {
 			// Cache expired for this entry. Fetch again.
 			db.Remove(series.Id)
 			gotSeries = false

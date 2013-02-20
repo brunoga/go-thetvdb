@@ -46,6 +46,8 @@ type Series struct {
 	FetchDate	 string
 }
 
+// GetSeriesById fetches information for the series identified by seriesId and
+// returns a Series struct filled with this information.
 func (t *TheTVDB) GetSeriesById(seriesId int) (*Series, error) {
 	series, err := t.db.Lookup(seriesId)
 	if err != nil {
@@ -79,3 +81,22 @@ func (t *TheTVDB) GetSeriesById(seriesId int) (*Series, error) {
 
 	return &v.Series[0], nil
 }
+
+// GetSeries fetches series that contains the seriesNameSubstring as part of
+// its name and returns a slice of Series objects with data about those series,
+// including their name, id and language.
+func (t *TheTVDB) GetSeries(seriesNameSubstring string) ([]Series, error) {
+	type Data struct {
+		Series []Series
+	}
+	v := Data{}
+
+	err := doRequest("GetSeries.php?seriesname=" + seriesNameSubstring +
+		"&language=en", nil, &v)
+	if err != nil {
+                return nil, err
+        }
+
+	return v.Series, nil
+}
+
