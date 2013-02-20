@@ -24,7 +24,7 @@ import (
 // Flags.
 var (
 	theTVDBAccountId = flag.String("accountid", "", "TheTVDB account id")
-        theTVDBApiKey = flag.String("apikey", "", "TheTVDB API key")
+	theTVDBApiKey    = flag.String("apikey", "", "TheTVDB API key")
 )
 
 func main() {
@@ -36,7 +36,7 @@ func main() {
 		return
 	}
 
-	fmt.Printf("Fetching user favorites ... ");
+	fmt.Printf("Fetching user favorites ... ")
 	userFavorites, err := tvdb.GetUserFavorites()
 	if err != nil {
 		fmt.Println("Error retrieving favorites :", err)
@@ -64,4 +64,3 @@ func main() {
 		fmt.Println("No ended series found.")
 	}
 }
-

@@ -31,6 +31,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 )
@@ -139,7 +140,7 @@ func doRequest(path string, parameters parameterMap,
 		} else {
 			first = false
 		}
-		urlParameters = urlParameters + key + "=" + value
+		urlParameters = urlParameters + key + "=" + url.QueryEscape(value)
 	}
 
 	finalUrl := apiUrlPrefix + path

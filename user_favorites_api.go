@@ -51,8 +51,8 @@ func (t *TheTVDB) GetUserFavorites() ([]int, error) {
 func (t *TheTVDB) AddUserFavorite(seriesId int) error {
 	err := ValidateAccountId(t.accountId)
 	if err != nil {
-                return fmt.Errorf("invalid account id : %v", err)
-        }
+		return fmt.Errorf("invalid account id : %v", err)
+	}
 
 	if !isSeriesIdValid(seriesId) {
 		return fmt.Errorf("invalid series id given : %v", seriesId)
@@ -79,9 +79,9 @@ func (t *TheTVDB) AddUserFavorite(seriesId int) error {
 // the list of series associated with the account id.
 func (t *TheTVDB) RemoveUserFavorite(seriesId int) error {
 	err := ValidateAccountId(t.accountId)
-        if err != nil {
-                return fmt.Errorf("invalid account id : %v", err)
-        }
+	if err != nil {
+		return fmt.Errorf("invalid account id : %v", err)
+	}
 
 	if !isSeriesIdValid(seriesId) {
 		return fmt.Errorf("invalid series id given : %v", seriesId)

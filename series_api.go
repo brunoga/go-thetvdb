@@ -43,7 +43,7 @@ type Series struct {
 	RatingCount      int
 	Runtime          int
 	Status           string
-	FetchDate	 string
+	FetchDate        string
 }
 
 // GetSeriesById fetches information for the series identified by seriesId and
@@ -59,9 +59,9 @@ func (t *TheTVDB) GetSeriesById(seriesId int) (*Series, error) {
 	}
 
 	err = ValidateAPIKey(t.apiKey)
-        if err != nil {
-                return nil, fmt.Errorf("invalid API key : %v", err)
-        }
+	if err != nil {
+		return nil, fmt.Errorf("invalid API key : %v", err)
+	}
 
 	type Data struct {
 		Series []Series
@@ -89,14 +89,18 @@ func (t *TheTVDB) GetSeries(seriesNameSubstring string) ([]Series, error) {
 	type Data struct {
 		Series []Series
 	}
+
+	parameters := parameterMap{
+		"seriesname": seriesNameSubstring,
+		"language":   "en",
+	}
+
 	v := Data{}
 
-	err := doRequest("GetSeries.php?seriesname=" + seriesNameSubstring +
-		"&language=en", nil, &v)
+	err := doRequest("GetSeries.php", parameters, &v)
 	if err != nil {
-                return nil, err
-        }
+		return nil, err
+	}
 
 	return v.Series, nil
 }
-
