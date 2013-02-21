@@ -21,10 +21,12 @@ import (
 	"github.com/feyeleanor/gosqlite3"
 )
 
+// LocalSeriesDatabase represents a local sqlite-based series database.
 type LocalSeriesDatabase struct {
 	db *sqlite3.Database
 }
 
+// NewLocalSeriesDatabase creates and returns a new LocalSeriesDatabase instance.
 func NewLocalSeriesDatabase(path string) (*LocalSeriesDatabase, error) {
 	// Open database trying to create it if it does not exist.
 	db, err := sqlite3.Open(path)
@@ -42,6 +44,8 @@ func NewLocalSeriesDatabase(path string) (*LocalSeriesDatabase, error) {
 	return &LocalSeriesDatabase{db: db}, nil
 }
 
+// Lookup searches for the series with the given seriesId in the local series
+// database and, if found, returns a Series instance representing it.
 func (db *LocalSeriesDatabase) Lookup(seriesId int) (*Series, error) {
 	gotSeries := false
 	series := Series{}
@@ -79,6 +83,7 @@ func (db *LocalSeriesDatabase) Lookup(seriesId int) (*Series, error) {
 	return &series, nil
 }
 
+// Insert inserts the given series to the local series database.
 func (db *LocalSeriesDatabase) Insert(series Series) error {
 	sql := fmt.Sprintf(
 		"INSERT INTO Series (Id, Name, Status) VALUES (%d, %q, %q)",
@@ -87,6 +92,9 @@ func (db *LocalSeriesDatabase) Insert(series Series) error {
 	return err
 }
 
+
+// Remove removes the series with the given seriesId from the local series
+// database.
 func (db *LocalSeriesDatabase) Remove(seriesId int) error {
 	_, err := db.db.Execute(fmt.Sprintf(
 		"DELETE FROM Series WHERE Id = %d", seriesId))
