@@ -58,22 +58,22 @@ func (db *LocalSeriesDatabase) Lookup(seriesId int) (*Series, error) {
 		return nil, err
 	}
 
+	if !gotSeries {
+		return nil, nil
+	}
+
 	fetchDate, err := time.Parse("2006-01-02 15:04:05", series.FetchDate)
 	if err != nil {
 		// If we got an error, just force refetching the series entry.
 		db.Remove(series.Id)
-		gotSeries = false
+		return nil, nil
 	} else {
 		elapsedTimeHours := time.Now().Sub(fetchDate).Hours()
 		if elapsedTimeHours > 48 {
 			// Cache expired for this entry. Fetch again.
 			db.Remove(series.Id)
-			gotSeries = false
+			return nil, nil
 		}
-	}
-
-	if !gotSeries {
-		return nil, nil
 	}
 
 	return &series, nil
