@@ -15,27 +15,28 @@
 package thetvdb
 
 import (
+	"database/sql"
 	"fmt"
 	"time"
 
-	"github.com/feyeleanor/gosqlite3"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 // LocalSeriesDatabase represents a local sqlite-based series database.
 type LocalSeriesDatabase struct {
-	db *sqlite3.Database
+	db *sql.DB
 }
 
 // NewLocalSeriesDatabase creates and returns a new LocalSeriesDatabase instance.
 func NewLocalSeriesDatabase(path string) (*LocalSeriesDatabase, error) {
 	// Open database trying to create it if it does not exist.
-	db, err := sqlite3.Open(path)
+	db, err := sql.Open("sqlite3", path)
 	if err != nil {
 		return nil, fmt.Errorf("error opening database %q : %v", path,
 			err)
 	}
 
-	_, err = db.Execute("CREATE TABLE IF NOT EXISTS Series " +
+	_, err = db.Exec("CREATE TABLE IF NOT EXISTS Series " +
 		"(Id INTEGER PRIMARY KEY, Name TEXT, Status TEXT, FetchDate DATETIME DEFAULT CURRENT_TIMESTAMP)")
 	if err != nil {
 		return nil, fmt.Errorf("error creating Series table : %v", err)
@@ -47,23 +48,23 @@ func NewLocalSeriesDatabase(path string) (*LocalSeriesDatabase, error) {
 // Lookup searches for the series with the given seriesId in the local series
 // database and, if found, returns a Series instance representing it.
 func (db *LocalSeriesDatabase) Lookup(seriesId int) (*Series, error) {
-	gotSeries := false
 	series := Series{}
-	_, err := db.db.Execute(fmt.Sprintf(
-		"SELECT * FROM Series WHERE Id = %d", seriesId),
-		func(st *sqlite3.Statement, values ...interface{}) {
-			series.Id = int(st.Column(0).(int64))
-			series.Name = st.Column(1).(string)
-			series.Status = st.Column(2).(string)
-			series.FetchDate = st.Column(3).(string)
-			gotSeries = true
-		})
-	if err != nil {
-		return nil, err
-	}
 
-	if !gotSeries {
-		return nil, nil
+	stmt, err := db.db.Prepare("SELECT * FROM Series WHERE Id = ?")
+	if err != nil {
+		return nil, fmt.Errorf("error preparing statement : %v", err)
+	}
+	defer stmt.Close()
+
+	row := stmt.QueryRow(seriesId)
+
+	var id int64
+	var name, status, date string
+	err = row.Scan(&id, &name, &status, &date)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
 	}
 
 	fetchDate, err := time.Parse("2006-01-02 15:04:05", series.FetchDate)
@@ -85,18 +86,34 @@ func (db *LocalSeriesDatabase) Lookup(seriesId int) (*Series, error) {
 
 // Insert inserts the given series to the local series database.
 func (db *LocalSeriesDatabase) Insert(series Series) error {
-	sql := fmt.Sprintf(
-		"INSERT INTO Series (Id, Name, Status) VALUES (%d, %q, %q)",
-		series.Id, series.Name, series.Status)
-	_, err := db.db.Execute(sql)
-	return err
+	stmt, err := db.db.Prepare("INSERT INTO Series (Id, Name, Status) VALUES (?, ?, ?)")
+	if err != nil {
+		fmt.Errorf("error preparing statement : %v", err)
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(series.Id, series.Name, series.Status)
+	if err != nil {
+		return fmt.Errorf("error executing statement : %v", err)
+	}
+
+	return nil
 }
 
 
 // Remove removes the series with the given seriesId from the local series
 // database.
 func (db *LocalSeriesDatabase) Remove(seriesId int) error {
-	_, err := db.db.Execute(fmt.Sprintf(
-		"DELETE FROM Series WHERE Id = %d", seriesId))
-	return err
+	stmt, err := db.db.Prepare("DELETE FROM Series WHERE Id = ?")
+	if err != nil {
+		return fmt.Errorf("error preparing statement : %v", err)
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(seriesId)
+	if err != nil {
+		return fmt.Errorf("error executing statement : %v", err)
+	}
+
+	return nil
 }
