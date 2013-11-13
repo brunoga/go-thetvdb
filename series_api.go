@@ -51,13 +51,15 @@ type Series struct {
 func (t *TheTVDB) GetSeriesById(seriesId int) (*Series, error) {
 	series, err := t.db.Lookup(seriesId)
 	if err != nil {
-		fmt.Println(err)
+		return nil, err
 	} else {
 		if series != nil {
+			// Found series on local database. Return it.
 			return series, nil
 		}
 	}
 
+	// Did not find series in local database. Fetch it and save.
 	err = ValidateAPIKey(t.apiKey)
 	if err != nil {
 		return nil, fmt.Errorf("invalid API key : %v", err)

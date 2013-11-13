@@ -36,8 +36,9 @@ func NewLocalSeriesDatabase(path string) (*LocalSeriesDatabase, error) {
 			err)
 	}
 
-	_, err = db.Exec("CREATE TABLE IF NOT EXISTS Series " +
-		"(Id INTEGER PRIMARY KEY, Name TEXT, Status TEXT, FetchDate DATETIME DEFAULT CURRENT_TIMESTAMP)")
+	_, err = db.Exec("CREATE TABLE IF NOT EXISTS Series (Id INTEGER " +
+		"PRIMARY KEY, Name TEXT, Status TEXT, FetchDate DATETIME " +
+		"DEFAULT CURRENT_TIMESTAMP)")
 	if err != nil {
 		return nil, fmt.Errorf("error creating Series table : %v", err)
 	}
@@ -59,26 +60,22 @@ func (db *LocalSeriesDatabase) Lookup(seriesId int) (*Series, error) {
 	row := stmt.QueryRow(seriesId)
 
 	var id int64
-	var name, status, date string
-	err = row.Scan(&id, &name, &status, &date)
+	var name, status string
+	var fetchDate time.Time
+	err = row.Scan(&id, &name, &status, &fetchDate)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
+		} else {
+			return nil, err
 		}
 	}
 
-	fetchDate, err := time.Parse("2006-01-02 15:04:05", series.FetchDate)
-	if err != nil {
-		// If we got an error, just force refetching the series entry.
+	elapsedTimeHours := time.Now().Sub(fetchDate).Hours()
+	if elapsedTimeHours > 48 {
+		// Cache expired for this entry. Fetch again.
 		db.Remove(series.Id)
 		return nil, nil
-	} else {
-		elapsedTimeHours := time.Now().Sub(fetchDate).Hours()
-		if elapsedTimeHours > 48 {
-			// Cache expired for this entry. Fetch again.
-			db.Remove(series.Id)
-			return nil, nil
-		}
 	}
 
 	return &series, nil
