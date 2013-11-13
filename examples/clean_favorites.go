@@ -23,12 +23,17 @@ import (
 
 // Flags.
 var (
-	theTVDBAccountId = flag.String("accountid", "", "TheTVDB account id")
-	theTVDBApiKey    = flag.String("apikey", "", "TheTVDB API key")
+	theTVDBAccountId = flag.String("account_id", "", "TheTVDB account id")
+	theTVDBApiKey    = flag.String("api_key", "", "TheTVDB API key")
 )
 
 func main() {
 	flag.Parse()
+
+	if len(*theTVDBAccountId) == 0 || len(*theTVDBApiKey) == 0 {
+		fmt.Println("Both --account_id and --api_key must be provided.")
+		return
+	}
 
 	tvdb, err := thetvdb.New(*theTVDBApiKey, *theTVDBAccountId)
 	if err != nil {
