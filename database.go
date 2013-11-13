@@ -37,8 +37,8 @@ func NewLocalSeriesDatabase(path string) (*LocalSeriesDatabase, error) {
 	}
 
 	_, err = db.Exec("CREATE TABLE IF NOT EXISTS Series (Id INTEGER " +
-		"PRIMARY KEY, Name TEXT, Status TEXT, FetchDate DATETIME " +
-		"DEFAULT CURRENT_TIMESTAMP)")
+		"PRIMARY KEY, Name TEXT, Genre TEXT, Status TEXT, FetchDate " +
+		"DATETIME DEFAULT CURRENT_TIMESTAMP)")
 	if err != nil {
 		return nil, fmt.Errorf("error creating Series table : %v", err)
 	}
@@ -49,8 +49,6 @@ func NewLocalSeriesDatabase(path string) (*LocalSeriesDatabase, error) {
 // Lookup searches for the series with the given seriesId in the local series
 // database and, if found, returns a Series instance representing it.
 func (db *LocalSeriesDatabase) Lookup(seriesId int) (*Series, error) {
-	series := Series{}
-
 	stmt, err := db.db.Prepare("SELECT * FROM Series WHERE Id = ?")
 	if err != nil {
 		return nil, fmt.Errorf("error preparing statement : %v", err)
@@ -60,9 +58,9 @@ func (db *LocalSeriesDatabase) Lookup(seriesId int) (*Series, error) {
 	row := stmt.QueryRow(seriesId)
 
 	var id int64
-	var name, status string
+	var name, status, genre string
 	var fetchDate time.Time
-	err = row.Scan(&id, &name, &status, &fetchDate)
+	err = row.Scan(&id, &name, &genre, &status, &fetchDate)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -74,22 +72,29 @@ func (db *LocalSeriesDatabase) Lookup(seriesId int) (*Series, error) {
 	elapsedTimeHours := time.Now().Sub(fetchDate).Hours()
 	if elapsedTimeHours > 48 {
 		// Cache expired for this entry. Fetch again.
-		db.Remove(series.Id)
+		db.Remove(seriesId)
 		return nil, nil
 	}
 
-	return &series, nil
+	const layout = "Jan 2, 2006 at 3:04pm (MST)"
+	return &Series{
+		Id: seriesId,
+		Name: name,
+		Status: status,
+		Genre: genre,
+		FetchDate: fetchDate.Format(layout),
+	}, nil
 }
 
 // Insert inserts the given series to the local series database.
 func (db *LocalSeriesDatabase) Insert(series Series) error {
-	stmt, err := db.db.Prepare("INSERT INTO Series (Id, Name, Status) VALUES (?, ?, ?)")
+	stmt, err := db.db.Prepare("INSERT INTO Series (Id, Name, Genre, Status) VALUES (?, ?, ?, ?)")
 	if err != nil {
 		fmt.Errorf("error preparing statement : %v", err)
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(series.Id, series.Name, series.Status)
+	_, err = stmt.Exec(series.Id, series.Name, series.Genre, series.Status)
 	if err != nil {
 		return fmt.Errorf("error executing statement : %v", err)
 	}
