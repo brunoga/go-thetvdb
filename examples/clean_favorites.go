@@ -55,7 +55,7 @@ func main() {
 	for _, seriesId := range userFavorites {
 		series, err := tvdb.GetSeriesById(seriesId)
 		if err != nil {
-			fmt.Println("Error getting series data :", err)
+			fmt.Println("Error getting series data for id", seriesId, ":", err)
 		} else {
 			if series.Status == "Ended" {
 				foundEnded = true
