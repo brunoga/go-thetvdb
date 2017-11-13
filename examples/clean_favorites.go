@@ -58,7 +58,7 @@ func main() {
 			fmt.Println("Error getting series data for id",
 				seriesId, ":", err)
 			// Remove series with invalid data.
-			tvdb.RemoveUserFavorite(series.Id)
+			tvdb.RemoveUserFavorite(seriesId)
 		} else {
 			if series.Status == "Ended" {
 				foundEnded = true
