@@ -76,6 +76,10 @@ func (t *TheTVDB) GetSeriesById(seriesId int) (*Series, error) {
 		return nil, err
 	}
 
+	if len(v.Series) == 0 {
+		return nil, fmt.Errorf("empty series data")
+	}
+
 	err = t.db.Insert(v.Series[0])
 	if err != nil {
 		fmt.Println(err)
