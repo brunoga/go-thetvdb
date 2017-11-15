@@ -133,6 +133,11 @@ func findSeriesId(seriesIds []int, seriesId int) bool {
 	i := sort.Search(len(seriesIds), func(i int) bool {
 		return seriesIds[i] >= seriesId
 	})
+
+	if i == len(seriesIds) {
+		return false
+	}
+
 	if seriesIds[i] != seriesId {
 		return false
 	}
